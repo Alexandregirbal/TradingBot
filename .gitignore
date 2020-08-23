@@ -1,1 +1,7 @@
 /node_modules
+crypto.code-workspace
+.env
+/dist
+history/*
+!history/.gitkeep
+*.code-workspace
