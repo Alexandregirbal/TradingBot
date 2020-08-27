@@ -1,9 +1,9 @@
-import { Symbol } from "../../Interfaces/cryptos";
-import { getCandleSticks, Intervals } from "../Public/Symbol";
-import moment from "moment";
+import { SymbolInterface } from "../../Interfaces/cryptos";
+import { getCandleSticks } from "../Public/Symbol";
+import { Intervals } from "../../Interfaces/binance";
 export const calculateRSI = async (p: {
   numberOfPeriodes: number;
-  symbols: Symbol;
+  symbols: SymbolInterface;
   intervals: Intervals;
   startTime: number;
   endTime: number;

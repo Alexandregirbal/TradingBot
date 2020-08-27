@@ -1,4 +1,4 @@
-export interface Symbol {
+export interface SymbolInterface {
   base: string;
   vs: string;
 }

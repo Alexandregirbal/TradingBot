@@ -22,7 +22,7 @@ const initialOrder: any = {
   quantity: -1,
   sell: -1,
   sellTime: -1,
-  winloss: -1,
+  variation: -1,
 };
 let actualOrder = { ...initialOrder };
 let price: number = -1;
@@ -74,7 +74,7 @@ ping()
           //SELL
           actualOrder.sell = price;
           actualOrder.sellTime = moment().format("MMMM Do YYYY, h:mm:ss a");
-          actualOrder.winloss = percentage;
+          actualOrder.variation = percentage;
           orders.push(actualOrder);
           saveOrdersAsJSON(orders);
           console.log("SELL:", actualOrder);
@@ -127,7 +127,7 @@ const saveOrdersAsJSON = (orders: Array<any>) => {
 //         if (res.value >= 60 || percentage >= 0.2) {
 //           //SELL
 //           actualOrder.sell = price;
-//           actualOrder.winloss = percentage;
+//           actualOrder.variation = percentage;
 //           orders.push(actualOrder);
 //           console.log("SELL:", actualOrder);
 //           actualOrder = { ...initialOrder };

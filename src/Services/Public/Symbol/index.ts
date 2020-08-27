@@ -1,11 +1,10 @@
-import { Symbol } from "../../../Interfaces/cryptos";
+import { SymbolInterface } from "../../../Interfaces/cryptos";
 import { publicRequest } from "..";
+import { Intervals } from "../../../Interfaces/binance";
 
-export interface Intervals {
-  number: number;
-  timeUnit: "s" | "m" | "h" | "d";
-}
-export const getLastPrice = async (p: { symbols: Symbol }): Promise<number> => {
+export const getLastPrice = async (p: {
+  symbols: SymbolInterface;
+}): Promise<number> => {
   const result = await publicRequest({
     data: { symbol: `${p.symbols.base}${p.symbols.vs}` },
     endPoint: "/ticker/price",
@@ -14,7 +13,7 @@ export const getLastPrice = async (p: { symbols: Symbol }): Promise<number> => {
   return result.price as number;
 };
 export const getCandleSticks = async (p: {
-  symbols: Symbol;
+  symbols: SymbolInterface;
   interval: Intervals;
   startTime: number;
   endTime: number;

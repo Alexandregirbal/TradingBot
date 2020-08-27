@@ -1,5 +1,5 @@
 import { privateRequest } from "..";
-import { Symbol } from "../../../Interfaces/cryptos";
+import { SymbolInterface } from "../../../Interfaces/cryptos";
 
 export const getAccountInformation = async () => {
   return await privateRequest({
@@ -13,7 +13,7 @@ export const getAccountInformation = async () => {
  * @param p symbols to get history of
  * @example getTrades({symbols:{ base:'BTC', vs: 'USDT' } })
  */
-export const getTrades = async (p: { symbols: Symbol }) => {
+export const getTrades = async (p: { symbols: SymbolInterface }) => {
   return await privateRequest({
     data: { symbol: `${p.symbols.base}${p.symbols.vs}` },
     endPoint: "/myTrades",

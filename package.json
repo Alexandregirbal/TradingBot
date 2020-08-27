@@ -6,7 +6,7 @@
   "scripts": {
     "test": "test",
     "dev": "concurrently -k -n \"Typescript,NodeJS\" -p \"[{name}]\" -c \"blue,green\" \"tsc --watch\" \"nodemon dist/index.js\"",
-    "simulation": "tsc && node dist/Strategy/pastTimeSimulation.js"
+    "simulation": "tsc && node dist/Simulation/index.js"
   },
   "keywords": [
     "crypto",

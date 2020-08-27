@@ -35,3 +35,7 @@ export const colorToRed = (s: string) => {
 export const highlightToBlue = (s: string) => {
   return color.white.bgBlue(s);
 };
+
+export const colorSuccess = (s: string) => {
+  return color.white.bold.bgGreen(s);
+};

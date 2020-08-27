@@ -1,9 +1,9 @@
 import { privateRequest } from "..";
-import { Symbol } from "../../../Interfaces/cryptos";
+import { SymbolInterface } from "../../../Interfaces/cryptos";
 import { Order, Balance } from "../../../Interfaces/orders";
 import { getAccountInformation } from "../Account";
 import GetExchangeInfo from "../../Public/ExchangeInfo";
-export const getOpenOrders = async (p: { symbols: Symbol }) => {
+export const getOpenOrders = async (p: { symbols: SymbolInterface }) => {
   return await privateRequest({
     data: {
       symbol: `${p.symbols.base}${p.symbols.vs}`,
@@ -14,7 +14,7 @@ export const getOpenOrders = async (p: { symbols: Symbol }) => {
 };
 
 export const buy = async (p: {
-  symbols: Symbol;
+  symbols: SymbolInterface;
   quantity: number;
   price: number;
 }) => {
@@ -28,7 +28,7 @@ export const buy = async (p: {
   }
 };
 export const sell = async (p: {
-  symbols: Symbol;
+  symbols: SymbolInterface;
   quantity: number;
   price: number;
 }) => {
@@ -44,7 +44,7 @@ export const sell = async (p: {
 
 const placeLimitOrder = async (p: {
   side: "SELL" | "BUY";
-  symbols: Symbol;
+  symbols: SymbolInterface;
   quantity: number;
   price: number;
 }) => {
