@@ -6,23 +6,18 @@ import config from "./config";
 import { lauchSimulation } from "./pastTimeSimulation";
 moment.locale("fr");
 const fs = require("fs");
-const { name: historyFileName, version, startTime, endTime, interval } = config;
-const prettyStartTime = moment(startTime).format("LLL");
-const prettyEndTime = moment(endTime).format("LLL");
-const simulationParameters = {
-  symbols: { base: "BTC", vs: "USDT" },
+const {
+  name: historyFileName,
+  version,
   startTime,
   endTime,
+  symbols,
   interval,
-  strategy: {
-    entry: {
-      rsi: "<=30",
-    },
-    exit: {
-      rsi: ">=69",
-    },
-  },
-};
+  strategy,
+} = config;
+const prettyStartTime = moment(startTime).format("LLL");
+const prettyEndTime = moment(endTime).format("LLL");
+
 console.log(
   "\n\n\n" +
     highlightToBlue(
@@ -35,7 +30,14 @@ ping()
   .then(async (res) => {
     if (isObjectEmpty(res.data)) {
       console.log(colorToBlue("Binance API available"));
-      const resultOfSimulation = await lauchSimulation(simulationParameters);
+      const resultOfSimulation = await lauchSimulation({
+        symbols,
+        interval,
+        startTime,
+        endTime,
+        strategy,
+      });
+
       console.log(`ALEX: resultOfSimulation`, resultOfSimulation);
     }
   })
