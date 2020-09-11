@@ -1,5 +1,5 @@
 import { SymbolInterface } from "./cryptos";
-import { Intervals } from "./binance";
+import { BinanceIntervalsEnum } from "./binance";
 
 /**
  * @type T: the object representing indicators and rules about them
@@ -10,7 +10,7 @@ export interface StrategyInterface<T> {
 }
 export interface SimulationInterface {
   symbols: SymbolInterface;
-  interval: Intervals;
+  interval: string;
   startTime: number;
   endTime: number;
   strategy: StrategyInterface<any>;

@@ -1,7 +1,7 @@
 /node_modules
-crypto.code-workspace
+*.code-workspace
 .env
 /dist
-history/*
-!history/.gitkeep
-*.code-workspace
+history/simulations/*
+history/candles/monthes/*
+!.gitkeep

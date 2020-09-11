@@ -1,5 +1,5 @@
 import moment from "moment";
-import { Intervals } from "../Interfaces/binance";
+import { BinanceIntervalsEnum } from "../Interfaces/binance";
 const substractor = {
   periodes: 8,
   unity: "days",
@@ -11,7 +11,7 @@ const endTime = moment()
   .subtract(substractor.periodes, substractor.unity as any)
   .add(960, "minutes")
   .valueOf();
-const interval: Intervals = { number: 1, timeUnit: "m" };
+const interval = BinanceIntervalsEnum.m1;
 
 export const increment = "config.version++;"; // this line will be added for each new test run
 
@@ -21,7 +21,7 @@ interface ConfigSimulationInterface {
   startTime: number;
   endTime: number;
   symbols: any;
-  interval: Intervals;
+  interval: string;
   strategy: any;
 }
 const config: ConfigSimulationInterface = {
@@ -41,3 +41,4 @@ const config: ConfigSimulationInterface = {
   },
 };
 export default config;
+config.version++;config.version++;config.version++;config.version++;config.version++;

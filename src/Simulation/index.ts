@@ -24,7 +24,7 @@ console.log(
       "--------------------------RUNNING BACKTEST--------------------------"
     ) +
     `\n${prettyStartTime} --> ${prettyEndTime}` +
-    `\n${historyFileName}-${version}`
+    `\nWill be saved as ${historyFileName}-${version}.json`
 );
 ping()
   .then(async (res) => {

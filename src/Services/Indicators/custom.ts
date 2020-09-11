@@ -1,10 +1,13 @@
 import { SymbolInterface } from "../../Interfaces/cryptos";
 import { getCandleSticks } from "../Public/Symbol";
-import { Intervals } from "../../Interfaces/binance";
+import {
+  BinanceIntervalsEnum,
+  BinanceCandleStickInterface,
+} from "../../Interfaces/binance";
 export const calculateRSI = async (p: {
   numberOfPeriodes: number;
   symbols: SymbolInterface;
-  intervals: Intervals;
+  intervals: BinanceIntervalsEnum;
   startTime: number;
   endTime: number;
 }): Promise<number> => {
@@ -33,9 +36,9 @@ export const calculateRSI = async (p: {
 };
 
 export const calculateRSIFromCandleSticks = (
-  candleSticks: Array<any>
+  candleSticks: Array<BinanceCandleStickInterface>
 ): number => {
-  const closePrices = candleSticks.map((candle) => +candle[4]);
+  const closePrices = candleSticks.map((candle) => candle.prices.close);
   let upwards = [];
   let downwards = [];
   const numberOfCandleSticks = closePrices.length;

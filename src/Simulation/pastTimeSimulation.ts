@@ -2,14 +2,19 @@ import moment from "moment";
 import { colorSuccess } from "../Console";
 import { SimulationInterface, SimulationOrder } from "../Interfaces/simulation";
 import { calculateRSIFromCandleSticks } from "../Services/Indicators/custom";
-import { getCandleSticks } from "../Services/Public/Symbol";
+import {
+  getCandleSticks,
+  getOneMonthCandleSticks,
+  getOneYearCandleSticks,
+} from "../Services/Public/Symbol";
 import config, { increment } from "./config";
+import { fetchOneMonth, fetchOneYear } from "./fetchCandles";
 moment.locale("fr");
 const fs = require("fs");
-const { name: historyFileName, version, startTime, endTime, interval } = config;
+const { name: historyFileName, version } = config;
 
 /**
- * Does the simulation, write a json file
+ * Does the simulation and writes a json file
  * @returns the result as a multiplicator of the inital wallet after simulation
  */
 export const lauchSimulation = async ({
@@ -40,25 +45,19 @@ export const lauchSimulation = async ({
   let closingPrice: number = -1;
   let rsi = -1;
   const rsiPeriodes = 14;
-  const candleSticks = await getCandleSticks({
-    symbols,
-    limit: 960,
-    interval,
-    startTime,
-    endTime,
-  });
+  const candleSticks = await fetchOneYear({ symbols, year: 2019 });
   for (let i = rsiPeriodes; i < candleSticks.length; i++) {
     rsi = calculateRSIFromCandleSticks(candleSticks.slice(i - rsiPeriodes, i));
-    //i % 10 === 0 && console.log(`\nRSI ${i}:`, rsi);
+    //i % 100 === 0 && console.log(`\nRSI ${i}:`, rsi);
     const actualCandle = candleSticks[i];
-    closingPrice = actualCandle[4];
+    closingPrice = actualCandle.prices.close;
     if (!hasBought) {
       //on attend une entrée
       if (eval(`${rsi}${strategy.entry.rsi}`)) {
         //BUY
         hasBought = true;
         actualOrder.buy.price = closingPrice;
-        actualOrder.buy.time = moment(actualCandle[6]).format(
+        actualOrder.buy.time = moment(actualCandle.time.close).format(
           "MMMM Do YYYY, h:mm:ss a"
         );
         actualOrder.buy.indicators = { rsi };
@@ -70,7 +69,7 @@ export const lauchSimulation = async ({
         //SELL
         hasBought = false;
         actualOrder.sell.price = closingPrice;
-        actualOrder.sell.time = moment(actualCandle[6]).format(
+        actualOrder.sell.time = moment(actualCandle.time.close).format(
           "MMMM Do YYYY, h:mm:ss a"
         );
         actualOrder.sell.indicators = { rsi };
@@ -147,7 +146,7 @@ const saveSimulationAsJSON = (p: {
     4
   );
   fs.writeFile(
-    `./history/${historyFileName}-${version}.json`,
+    `./history/simulations/${historyFileName}-${version}.json`,
     json,
     "utf8",
     () => {
