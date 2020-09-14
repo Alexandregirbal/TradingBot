@@ -2,7 +2,7 @@ import moment from "moment";
 import { colorToBlue, colorToRed, highlightToBlue } from "../Console";
 import ping from "../Services/Public/Ping";
 import { isObjectEmpty } from "../utils/objects";
-import config from "./config";
+import { config } from "./config";
 import { lauchSimulation } from "./pastTimeSimulation";
 moment.locale("fr");
 const fs = require("fs");

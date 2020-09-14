@@ -1,5 +1,6 @@
 import moment from "moment";
 import { BinanceIntervalsEnum } from "../Interfaces/binance";
+import { SymbolInterface } from "../Interfaces/cryptos";
 const substractor = {
   periodes: 8,
   unity: "days",
@@ -24,12 +25,14 @@ interface ConfigSimulationInterface {
   interval: string;
   strategy: any;
 }
-const config: ConfigSimulationInterface = {
+
+
+export const config: ConfigSimulationInterface = {
   name: "simulation",
   version: 1,
   startTime,
   endTime,
-  symbols: { base: "BTC", vs: "USDT" },
+  symbols: { base: "ETH", vs: "USDT" },
   interval,
   strategy: {
     entry: {
@@ -40,5 +43,8 @@ const config: ConfigSimulationInterface = {
     },
   },
 };
-export default config;
-config.version++;config.version++;config.version++;config.version++;config.version++;
+
+
+
+config.version++;
+config.version++;config.version++;config.version++;config.version++;config.version++;config.version++;config.version++;

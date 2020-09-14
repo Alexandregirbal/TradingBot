@@ -7,8 +7,9 @@ import {
   getOneMonthCandleSticks,
   getOneYearCandleSticks,
 } from "../Services/Public/Symbol";
-import config, { increment } from "./config";
-import { fetchOneMonth, fetchOneYear } from "./fetchCandles";
+import {config, increment } from "./config";
+import { fetchAllByMonthVsUSDT, fetchAllFromSymbols, fetchOneMonth, fetchOneYear } from "./fetchCandles";
+import { BinanceCandleStickInterface } from "../Interfaces/binance";
 moment.locale("fr");
 const fs = require("fs");
 const { name: historyFileName, version } = config;
@@ -45,7 +46,13 @@ export const lauchSimulation = async ({
   let closingPrice: number = -1;
   let rsi = -1;
   const rsiPeriodes = 14;
-  const candleSticks = await fetchOneYear({ symbols, year: 2019 });
+  let candleSticks : Array<BinanceCandleStickInterface> = [];
+  candleSticks = await fetchOneMonth({ symbols, year: 2018, month: 3 });
+  //candleSticks = await fetchOneYear({ symbols, year: 2018 });
+  //candleSticks = await fetchAllByMonthVsUSDT();
+  //candleSticks = await fetchAllFromSymbols({symbols});
+  console.log("Number of Candles : ", candleSticks.length);
+  console.log("Number of months studied : ", candleSticks.length /43000);
   for (let i = rsiPeriodes; i < candleSticks.length; i++) {
     rsi = calculateRSIFromCandleSticks(candleSticks.slice(i - rsiPeriodes, i));
     //i % 100 === 0 && console.log(`\nRSI ${i}:`, rsi);
