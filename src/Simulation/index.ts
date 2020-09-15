@@ -9,42 +9,30 @@ const fs = require("fs");
 const {
   name: historyFileName,
   version,
-  startTime,
-  endTime,
   symbols,
+  start,
+  end,
   interval,
   strategy,
 } = config;
-const prettyStartTime = moment(startTime).format("LLL");
-const prettyEndTime = moment(endTime).format("LLL");
 
 console.log(
   "\n\n\n" +
     highlightToBlue(
       "--------------------------RUNNING BACKTEST--------------------------"
     ) +
-    `\n${prettyStartTime} --> ${prettyEndTime}` +
-    `\nWill be saved as ${historyFileName}-${version}.json`
-);
-ping()
-  .then(async (res) => {
-    if (isObjectEmpty(res.data)) {
-      console.log(colorToBlue("Binance API available"));
-      const resultOfSimulation = await lauchSimulation({
-        symbols,
-        interval,
-        startTime,
-        endTime,
-        strategy,
-      });
-
-      console.log(`ALEX: resultOfSimulation`, resultOfSimulation);
-    }
-  })
-  .catch((err) =>
-    console.log(
-      colorToRed(
-        "Binance API unreachable, check internet connexion or Binance website."
-      )
+    colorToBlue(
+      `\nThe simulation will be saved as ${historyFileName}-${version}.json`
     )
-  );
+);
+const resultOfSimulation = lauchSimulation({
+  symbols,
+  start,
+  end,
+  interval,
+  strategy,
+})
+  .then((res) => {
+    console.log(`ALEX: resultOfSimulation`, res);
+  })
+  .catch((err) => console.error(colorToRed(`Error: ${err}\n`), err));

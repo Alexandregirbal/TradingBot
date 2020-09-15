@@ -119,7 +119,13 @@ export const getOneMonthCandleSticks = async (p: {
     json,
     "utf8",
     () => {
-      console.log(colorSuccess(`Candles of a month saved`));
+      console.log(
+        colorSuccess(
+          `${p.symbols.base}-${p.symbols.vs}_${p.year}-${
+            p.monthNumber + 1
+          } --> Candles saved.`
+        )
+      );
     }
   );
   return result;

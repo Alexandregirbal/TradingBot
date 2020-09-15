@@ -19,20 +19,19 @@ export const increment = "config.version++;"; // this line will be added for eac
 interface ConfigSimulationInterface {
   name: string;
   version: number;
-  startTime: number;
-  endTime: number;
+  start: { year: number; month: number };
+  end: { year: number; month: number };
   symbols: any;
   interval: string;
   strategy: any;
 }
 
-
 export const config: ConfigSimulationInterface = {
   name: "simulation",
   version: 1,
-  startTime,
-  endTime,
   symbols: { base: "ETH", vs: "USDT" },
+  start: { year: 2019, month: 5 },
+  end: { year: 2019, month: 12 },
   interval,
   strategy: {
     entry: {
@@ -43,8 +42,3 @@ export const config: ConfigSimulationInterface = {
     },
   },
 };
-
-
-
-config.version++;
-config.version++;config.version++;config.version++;config.version++;config.version++;config.version++;config.version++;

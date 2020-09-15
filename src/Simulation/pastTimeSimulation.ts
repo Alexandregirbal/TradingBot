@@ -2,13 +2,14 @@ import moment from "moment";
 import { colorSuccess } from "../Console";
 import { SimulationInterface, SimulationOrder } from "../Interfaces/simulation";
 import { calculateRSIFromCandleSticks } from "../Services/Indicators/custom";
+import { config, increment } from "./config";
 import {
-  getCandleSticks,
-  getOneMonthCandleSticks,
-  getOneYearCandleSticks,
-} from "../Services/Public/Symbol";
-import {config, increment } from "./config";
-import { fetchAllByMonthVsUSDT, fetchAllFromSymbols, fetchOneMonth, fetchOneYear } from "./fetchCandles";
+  fetchAllByMonthVsUSDT,
+  fetchAllFromSymbols,
+  fetchOneMonth,
+  fetchOneYear,
+  fetchPeriode,
+} from "./fetchCandles";
 import { BinanceCandleStickInterface } from "../Interfaces/binance";
 moment.locale("fr");
 const fs = require("fs");
@@ -20,9 +21,9 @@ const { name: historyFileName, version } = config;
  */
 export const lauchSimulation = async ({
   symbols,
+  start,
+  end,
   interval,
-  startTime,
-  endTime,
   strategy,
 }: SimulationInterface): Promise<number> => {
   let result = 1;
@@ -46,13 +47,20 @@ export const lauchSimulation = async ({
   let closingPrice: number = -1;
   let rsi = -1;
   const rsiPeriodes = 14;
-  let candleSticks : Array<BinanceCandleStickInterface> = [];
-  candleSticks = await fetchOneMonth({ symbols, year: 2018, month: 3 });
+  let candleSticks: Array<BinanceCandleStickInterface> = [];
+  // candleSticks = fetchOneMonth({ symbols, year: 2018, month: 3 });
   //candleSticks = await fetchOneYear({ symbols, year: 2018 });
   //candleSticks = await fetchAllByMonthVsUSDT();
   //candleSticks = await fetchAllFromSymbols({symbols});
+  candleSticks = fetchPeriode({
+    symbols,
+    start: start as any, //can be undefined becauce of the interface, could be modified
+    end: end as any,
+  });
+  const startTime = candleSticks[0].time.open;
+  const endTime = candleSticks[candleSticks.length - 1].time.close;
   console.log("Number of Candles : ", candleSticks.length);
-  console.log("Number of months studied : ", candleSticks.length /43000);
+  console.log("Number of months studied : ", candleSticks.length / 43000);
   for (let i = rsiPeriodes; i < candleSticks.length; i++) {
     rsi = calculateRSIFromCandleSticks(candleSticks.slice(i - rsiPeriodes, i));
     //i % 100 === 0 && console.log(`\nRSI ${i}:`, rsi);
@@ -111,10 +119,10 @@ export const lauchSimulation = async ({
     simulationParameters: {
       symbols,
       interval,
-      startTime,
-      endTime,
       strategy,
     },
+    startTime: moment(startTime).valueOf(),
+    endTime: moment(endTime).valueOf(),
     result,
     orders,
     writeNew: true,
@@ -122,15 +130,21 @@ export const lauchSimulation = async ({
   return result;
 };
 
-const prettySimulation = (simulation: SimulationInterface) => {
+const prettySimulation = (
+  simulation: SimulationInterface,
+  startTime: number,
+  endTime: number
+) => {
   return {
     ...simulation,
-    startTime: moment(simulation.startTime).format("LLL"),
-    endTime: moment(simulation.endTime).format("LLL"),
+    startTime: moment(startTime).format("LLL"),
+    endTime: moment(endTime).format("LLL"),
   };
 };
 const saveSimulationAsJSON = (p: {
   simulationParameters: SimulationInterface;
+  startTime: number;
+  endTime: number;
   result: number;
   orders: Array<SimulationOrder>;
   writeNew: boolean;
@@ -144,7 +158,7 @@ const saveSimulationAsJSON = (p: {
   }%`;
   const json = JSON.stringify(
     {
-      ...prettySimulation(p.simulationParameters),
+      ...prettySimulation(p.simulationParameters, p.startTime, p.endTime),
       result,
       numberOfOrders: p.orders.length,
       orders: p.orders,

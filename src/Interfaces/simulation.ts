@@ -10,9 +10,9 @@ export interface StrategyInterface<T> {
 }
 export interface SimulationInterface {
   symbols: SymbolInterface;
+  start?: { year: number; month: number };
+  end?: { year: number; month: number };
   interval: string;
-  startTime: number;
-  endTime: number;
   strategy: StrategyInterface<any>;
 }
 export interface SimulationOrder {

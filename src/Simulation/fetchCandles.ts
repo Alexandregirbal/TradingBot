@@ -8,7 +8,7 @@ export const fetchOneMonth = (p: {
   month: number;
   year: number;
 }): Array<BinanceCandleStickInterface> => {
-  try{
+  try {
     const file = fs.readFileSync(
       `./history/candles/monthes/${p.symbols.base}-${p.symbols.vs}_${p.year}-${p.month}.json`,
       "utf8"
@@ -19,7 +19,7 @@ export const fetchOneMonth = (p: {
       result.push(parseToCandleStick(candle));
     }
     return result;
-  } catch (e){
+  } catch (e) {
     return [];
   }
 };
@@ -28,7 +28,7 @@ export const fetchOneYear = (p: {
   symbols: SymbolInterface;
   year: number;
 }): Array<BinanceCandleStickInterface> => {
-  let result: any[] = [];
+  let result: Array<BinanceCandleStickInterface> = [];
   for (let i = 1; i < 13; i++) {
     result = [...result, ...fetchOneMonth({ ...p, month: i })];
   }
@@ -38,21 +38,45 @@ export const fetchOneYear = (p: {
 export const fetchAllFromSymbols = (p: {
   symbols: SymbolInterface;
 }): Array<BinanceCandleStickInterface> => {
-  let result: any[] = [];
+  let result: Array<BinanceCandleStickInterface> = [];
   for (let i = 0; i < 3; i++) {
-    result = [...result, ...fetchOneYear({ ...p, year: (2018+i) })];
+    result = [...result, ...fetchOneYear({ ...p, year: 2018 + i })];
   }
   return result;
 };
 
 export const fetchAllByMonthVsUSDT = (): Array<BinanceCandleStickInterface> => {
   const listOfCurrencies = ["BTC", "ETH"];
-  let result: any[] = [];
+  let result: Array<BinanceCandleStickInterface> = [];
   for (let i = 0; i < listOfCurrencies.length; i++) {
-    const symbols : SymbolInterface = {base: listOfCurrencies[i], vs: "USDT"};
+    const symbols: SymbolInterface = { base: listOfCurrencies[i], vs: "USDT" };
     for (let j = 0; j < 3; j++) {
-      result = [...result, ...fetchOneYear({ symbols, year: (2018+j) })];
+      result = [...result, ...fetchOneYear({ symbols, year: 2018 + j })];
     }
+  }
+  return result;
+};
+
+export const fetchPeriode = (p: {
+  symbols: SymbolInterface;
+  start: { year: number; month: number };
+  end: { year: number; month: number };
+}): Array<BinanceCandleStickInterface> => {
+  let result: Array<BinanceCandleStickInterface> = [];
+  let yearResult: Array<BinanceCandleStickInterface> = [];
+  let monthResult: Array<BinanceCandleStickInterface> = [];
+  for (let y = p.start.year; y <= p.end.year; y++) {
+    // console.log(`ALEX: y`, y);
+    let m = y === p.start.year ? p.start.month : 1;
+    while (m <= 12 && (y === p.end.year ? m <= p.end.month : true)) {
+      // console.log(`ALEX: m`, m);
+      monthResult = fetchOneMonth({ symbols: p.symbols, year: y, month: m });
+      yearResult = yearResult.concat(monthResult);
+      monthResult = [];
+      m++;
+    }
+    result = result.concat(yearResult);
+    yearResult = [];
   }
   return result;
 };
