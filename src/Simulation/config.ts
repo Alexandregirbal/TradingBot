@@ -24,6 +24,7 @@ interface ConfigSimulationInterface {
   symbols: any;
   interval: string;
   strategy: any;
+  transactionFee: number;
 }
 
 export const config: ConfigSimulationInterface = {
@@ -41,5 +42,6 @@ export const config: ConfigSimulationInterface = {
       rsi: ">=69",
     },
   },
+  transactionFee: 0.1 / 100, //0.1% max chez Binance
 };
-config.version++;config.version++;config.version++;config.version++;config.version++;config.version++;
+config.version++;

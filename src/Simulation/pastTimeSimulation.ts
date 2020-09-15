@@ -25,6 +25,7 @@ export const lauchSimulation = async ({
   end,
   interval,
   strategy,
+  transactionFee,
 }: SimulationInterface): Promise<number> => {
   let globalVariation = 1;
   let orders: Array<SimulationOrder> = [];
@@ -89,9 +90,11 @@ export const lauchSimulation = async ({
           "MMMM Do YYYY, h:mm:ss a"
         );
         actualOrder.sell.indicators = { rsi };
+        //Calculate variation of a transaction with fees
         actualOrder.variation = +(
-          actualOrder.sell.price / actualOrder.buy.price
-        ).toFixed(6);
+          (actualOrder.sell.price * (1 - transactionFee)) /
+          (actualOrder.buy.price * (1 - transactionFee))
+        ).toFixed(8); // no need of transaction fees while no quantities are settled
         orders.push(actualOrder);
         actualOrder = {
           buy: {
@@ -122,6 +125,7 @@ export const lauchSimulation = async ({
       symbols,
       interval,
       strategy,
+      transactionFee,
     },
     startTime: moment(startTime).valueOf(),
     endTime: moment(endTime).valueOf(),

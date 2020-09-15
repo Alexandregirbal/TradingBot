@@ -14,6 +14,7 @@ const {
   end,
   interval,
   strategy,
+  transactionFee,
 } = config;
 
 console.log(
@@ -31,6 +32,7 @@ const resultOfSimulation = lauchSimulation({
   end,
   interval,
   strategy,
+  transactionFee,
 })
   .then((res) => {
     console.log(`ALEX: resultOfSimulation`, res);

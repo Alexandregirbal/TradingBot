@@ -14,6 +14,7 @@ export interface SimulationInterface {
   end?: { year: number; month: number };
   interval: string;
   strategy: StrategyInterface<any>;
+  transactionFee: number;
 }
 export interface SimulationOrder {
   buy: {
