@@ -14,7 +14,7 @@ const endTime = moment()
   .valueOf();
 const interval = BinanceIntervalsEnum.m1;
 
-export const increment = "config.version++;"; // this line will be added for each new test run
+export const increment = "config.version++;"; // this line will be added for each new simulation run
 
 interface ConfigSimulationInterface {
   name: string;
@@ -42,3 +42,4 @@ export const config: ConfigSimulationInterface = {
     },
   },
 };
+config.version++;config.version++;config.version++;config.version++;config.version++;config.version++;

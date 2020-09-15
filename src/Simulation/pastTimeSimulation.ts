@@ -17,7 +17,7 @@ const { name: historyFileName, version } = config;
 
 /**
  * Does the simulation and writes a json file
- * @returns the result as a multiplicator of the inital wallet after simulation
+ * @returns the global variation as a multiplicator of the inital wallet after simulation
  */
 export const lauchSimulation = async ({
   symbols,
@@ -26,7 +26,7 @@ export const lauchSimulation = async ({
   interval,
   strategy,
 }: SimulationInterface): Promise<number> => {
-  let result = 1;
+  let globalVariation = 1;
   let orders: Array<SimulationOrder> = [];
   let hasBought = false;
   let actualOrder: SimulationOrder = {
@@ -42,7 +42,7 @@ export const lauchSimulation = async ({
       time: "",
       indicators: {},
     },
-    variation: -1,
+    variation: 1,
   };
   let closingPrice: number = -1;
   let rsi = -1;
@@ -61,6 +61,7 @@ export const lauchSimulation = async ({
   const endTime = candleSticks[candleSticks.length - 1].time.close;
   console.log("Number of Candles : ", candleSticks.length);
   console.log("Number of months studied : ", candleSticks.length / 43000);
+
   for (let i = rsiPeriodes; i < candleSticks.length; i++) {
     rsi = calculateRSIFromCandleSticks(candleSticks.slice(i - rsiPeriodes, i));
     //i % 100 === 0 && console.log(`\nRSI ${i}:`, rsi);
@@ -89,9 +90,8 @@ export const lauchSimulation = async ({
         );
         actualOrder.sell.indicators = { rsi };
         actualOrder.variation = +(
-          ((closingPrice - actualOrder.buy.price) / actualOrder.buy.price) *
-          100
-        ).toFixed(2);
+          actualOrder.sell.price / actualOrder.buy.price
+        ).toFixed(6);
         orders.push(actualOrder);
         actualOrder = {
           buy: {
@@ -106,15 +106,17 @@ export const lauchSimulation = async ({
             time: "",
             indicators: {},
           },
-          variation: -1,
+          variation: 1,
         };
       }
     }
   }
   const variations = orders.map((order) => order.variation);
-  for (const variation of variations) {
-    result = +(result * (1 + variation / 100)).toFixed(4);
-  }
+  globalVariation = +variations
+    .reduce((acc, variation, index) => {
+      return index !== 0 ? acc * variation : 1 * variation;
+    })
+    .toFixed(6);
   saveSimulationAsJSON({
     simulationParameters: {
       symbols,
@@ -123,11 +125,11 @@ export const lauchSimulation = async ({
     },
     startTime: moment(startTime).valueOf(),
     endTime: moment(endTime).valueOf(),
-    result,
+    globalVariation,
     orders,
     writeNew: true,
   });
-  return result;
+  return globalVariation;
 };
 
 const prettySimulation = (
@@ -145,21 +147,23 @@ const saveSimulationAsJSON = (p: {
   simulationParameters: SimulationInterface;
   startTime: number;
   endTime: number;
-  result: number;
+  globalVariation: number;
   orders: Array<SimulationOrder>;
   writeNew: boolean;
 }) => {
-  let result = { multiplicator: p.result, percentage: "0%" };
+  let globalVariation = {
+    multiplicator: p.globalVariation,
+    percentage: `${
+      p.globalVariation > 1
+        ? ((p.globalVariation - 1) * 100).toFixed(2)
+        : "-" + ((1 - p.globalVariation) * 100).toFixed(2)
+    }%`,
+  };
 
-  result.percentage = `${
-    result.multiplicator > 1
-      ? ((result.multiplicator - 1) * 100).toFixed(2)
-      : "-" + ((1 - result.multiplicator) * 100).toFixed(2)
-  }%`;
   const json = JSON.stringify(
     {
       ...prettySimulation(p.simulationParameters, p.startTime, p.endTime),
-      result,
+      globalVariation,
       numberOfOrders: p.orders.length,
       orders: p.orders,
     },
@@ -178,7 +182,9 @@ const saveSimulationAsJSON = (p: {
           if (err) return console.error(err);
         });
       console.log(
-        colorSuccess(`Simulation saved, variation: ${result.percentage}`)
+        colorSuccess(
+          `Simulation saved, variation: ${globalVariation.percentage}`
+        )
       );
     }
   );
