@@ -1,7 +1,7 @@
 import moment from "moment";
 import { colorSuccess } from "../Console";
 import { SimulationInterface, SimulationOrder } from "../Interfaces/simulation";
-import { calculateRSIFromCandleSticks } from "../Services/Indicators/custom";
+import { calculateRSIFromCandleSticks } from "../Services/Indicators/custom/rsi";
 import { config, increment } from "./config";
 import {
   fetchAllByMonthVsUSDT,
@@ -11,6 +11,7 @@ import {
   fetchPeriode,
 } from "./fetchCandles";
 import { BinanceCandleStickInterface } from "../Interfaces/binance";
+import { calculateMovingAverage } from "../Services/Indicators/custom/movingAverage";
 moment.locale("fr");
 const fs = require("fs");
 const { name: historyFileName, version } = config;
@@ -47,7 +48,9 @@ export const lauchSimulation = async ({
   };
   let closingPrice: number = -1;
   let rsi = -1;
+  let ma = -1;
   const rsiPeriodes = 14;
+  const movingAveragePeriodes = 7;
   let candleSticks: Array<BinanceCandleStickInterface> = [];
   // candleSticks = fetchOneMonth({ symbols, year: 2018, month: 3 });
   //candleSticks = await fetchOneYear({ symbols, year: 2018 });
@@ -64,9 +67,16 @@ export const lauchSimulation = async ({
   console.log("Number of months studied : ", candleSticks.length / 43000);
 
   for (let i = rsiPeriodes; i < candleSticks.length; i++) {
-    rsi = calculateRSIFromCandleSticks(candleSticks.slice(i - rsiPeriodes, i));
-    //i % 100 === 0 && console.log(`\nRSI ${i}:`, rsi);
     const actualCandle = candleSticks[i];
+    rsi = calculateRSIFromCandleSticks(candleSticks.slice(i - rsiPeriodes, i));
+    ma = calculateMovingAverage(
+      candleSticks.slice(i - movingAveragePeriodes, i)
+    );
+    // i % 100 === 0 &&
+    //   console.log(
+    //     `\nMA(movingAveragePeriodes) ${moment(actualCandle.time.close).format("LLL")}:`,
+    //     ma
+    //   );
     closingPrice = actualCandle.prices.close;
     if (!hasBought) {
       //on attend une entrée

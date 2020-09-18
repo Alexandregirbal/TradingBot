@@ -35,6 +35,6 @@ ping()
     console.log(
       colorToRed(
         "Binance API unreachable, check internet connexion or Binance website."
-      )
+      ),err
     )
   );

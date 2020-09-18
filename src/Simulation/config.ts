@@ -30,9 +30,9 @@ interface ConfigSimulationInterface {
 export const config: ConfigSimulationInterface = {
   name: "simulation",
   version: 1,
-  symbols: { base: "ETH", vs: "USDT" },
-  start: { year: 2019, month: 5 },
-  end: { year: 2019, month: 12 },
+  symbols: { base: "BTC", vs: "USDT" },
+  start: { year: 2020, month: 9 },
+  end: { year: 2020, month: 9 },
   interval,
   strategy: {
     entry: {
