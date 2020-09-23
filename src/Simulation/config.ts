@@ -24,15 +24,19 @@ interface ConfigSimulationInterface {
   symbols: any;
   interval: string;
   strategy: any;
+  stopStrategy: {
+    takeProfit: number;
+    stopLoss: number;
+  };
   transactionFee: number;
 }
 
 export const config: ConfigSimulationInterface = {
   name: "simulation",
   version: 1,
-  symbols: { base: "BTC", vs: "USDT" },
-  start: { year: 2020, month: 9 },
-  end: { year: 2020, month: 9 },
+  symbols: { base: "ETH", vs: "USDT" },
+  start: { year: 2018, month: 1 },
+  end: { year: 2018, month: 12 },
   interval,
   strategy: {
     entry: {
@@ -42,6 +46,21 @@ export const config: ConfigSimulationInterface = {
       rsi: ">=69",
     },
   },
+  stopStrategy: {
+    takeProfit: 0.003,
+    stopLoss: 0.998,
+  },
   transactionFee: 0.1 / 100, //0.1% max chez Binance
 };
+config.version++;
+config.version++;
+config.version++;
+config.version++;
+config.version++;
+config.version++;
+config.version++;
+config.version++;
+config.version++;
+config.version++;
+config.version++;
 config.version++;

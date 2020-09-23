@@ -8,8 +8,8 @@ interface ConfigDownloadHistoryInterface {
 
 export const configDownloadHistory: Array<ConfigDownloadHistoryInterface> = [
   {
-    symbols: { base: "BTC", vs: "USDT" },
+    symbols: { base: "ETH", vs: "USDT" },
     interval: "1m",
-    year: 2020,
+    year: 2018,
   },
 ];

@@ -1,20 +1,14 @@
 import moment from "moment";
-import { colorSuccess } from "../Console";
-import { SimulationInterface, SimulationOrder } from "../Interfaces/simulation";
-import { calculateRSIFromCandleSticks } from "../Services/Indicators/custom/rsi";
-import { config, increment } from "./config";
-import {
-  fetchAllByMonthVsUSDT,
-  fetchAllFromSymbols,
-  fetchOneMonth,
-  fetchOneYear,
-  fetchPeriode,
-} from "./fetchCandles";
 import { BinanceCandleStickInterface } from "../Interfaces/binance";
+import { SimulationInterface, SimulationOrder } from "../Interfaces/simulation";
 import { calculateMovingAverage } from "../Services/Indicators/custom/movingAverage";
+import { calculateRSIFromCandleSticks } from "../Services/Indicators/custom/rsi";
+import { shouldBuy, shouldSell } from "./buyAndSellStrategy";
+import { config, increment } from "./config";
+import { fetchPeriode } from "./fetchCandles";
+import { saveSimulationAsJSON } from "./utils";
 moment.locale("fr");
-const fs = require("fs");
-const { name: historyFileName, version } = config;
+const { name: historyFileName, version, stopStrategy } = config;
 
 /**
  * Does the simulation and writes a json file
@@ -47,15 +41,14 @@ export const lauchSimulation = async ({
     variation: 1,
   };
   let closingPrice: number = -1;
-  let rsi = -1;
-  let ma = -1;
+  let rsi = { previous: -1, actual: -1 };
+  let ma = {
+    first: { previous: -1, actual: -1 },
+    second: { previous: -1, actual: -1 },
+  };
   const rsiPeriodes = 14;
-  const movingAveragePeriodes = 7;
+  const movingAveragePeriodes = { first: 21, second: 7 };
   let candleSticks: Array<BinanceCandleStickInterface> = [];
-  // candleSticks = fetchOneMonth({ symbols, year: 2018, month: 3 });
-  //candleSticks = await fetchOneYear({ symbols, year: 2018 });
-  //candleSticks = await fetchAllByMonthVsUSDT();
-  //candleSticks = await fetchAllFromSymbols({symbols});
   candleSticks = fetchPeriode({
     symbols,
     start: start as any, //can be undefined becauce of the interface, could be modified
@@ -68,10 +61,19 @@ export const lauchSimulation = async ({
 
   for (let i = rsiPeriodes; i < candleSticks.length; i++) {
     const actualCandle = candleSticks[i];
-    rsi = calculateRSIFromCandleSticks(candleSticks.slice(i - rsiPeriodes, i));
-    ma = calculateMovingAverage(
-      candleSticks.slice(i - movingAveragePeriodes, i)
+    rsi.previous = rsi.actual;
+    rsi.actual = calculateRSIFromCandleSticks(
+      candleSticks.slice(i - rsiPeriodes, i)
     );
+    ma.first.previous = ma.first.actual;
+    ma.first.actual = calculateMovingAverage(
+      candleSticks.slice(i - movingAveragePeriodes.first, i)
+    );
+    ma.second.previous = ma.second.actual;
+    ma.second.actual = calculateMovingAverage(
+      candleSticks.slice(i - movingAveragePeriodes.second, i)
+    );
+
     // i % 100 === 0 &&
     //   console.log(
     //     `\nMA(movingAveragePeriodes) ${moment(actualCandle.time.close).format("LLL")}:`,
@@ -80,7 +82,16 @@ export const lauchSimulation = async ({
     closingPrice = actualCandle.prices.close;
     if (!hasBought) {
       //on attend une entrée
-      if (eval(`${rsi}${strategy.entry.rsi}`)) {
+      //if (eval(`${rsi}${strategy.entry.rsi}`)) {
+      if (
+        shouldBuy({
+          rsi: {
+            strategy: 30,
+            ...rsi,
+          },
+          ma,
+        })
+      ) {
         //BUY
         hasBought = true;
         actualOrder.buy.price = closingPrice;
@@ -92,7 +103,18 @@ export const lauchSimulation = async ({
     } else {
       //hasBought === true
       //on attend une sortie
-      if (eval(`${rsi}${strategy.exit.rsi}`)) {
+      actualOrder.variation = +(
+        (closingPrice * (1 - transactionFee)) /
+        (actualOrder.buy.price * (1 - transactionFee))
+      ).toFixed(8); // no need of transaction fees while no quantities are settled
+      // if (eval(`${rsi}${strategy.exit.rsi}`)) {
+      if (
+        shouldSell({
+          rsi: { strategy: 70, ...rsi },
+          ma,
+          variation: { actual: actualOrder.variation, ...stopStrategy },
+        })
+      ) {
         //SELL
         hasBought = false;
         actualOrder.sell.price = closingPrice;
@@ -100,11 +122,7 @@ export const lauchSimulation = async ({
           "MMMM Do YYYY, h:mm:ss a"
         );
         actualOrder.sell.indicators = { rsi };
-        //Calculate variation of a transaction with fees
-        actualOrder.variation = +(
-          (actualOrder.sell.price * (1 - transactionFee)) /
-          (actualOrder.buy.price * (1 - transactionFee))
-        ).toFixed(8); // no need of transaction fees while no quantities are settled
+        //Calculate variation of a transaction with fee
         orders.push(actualOrder);
         actualOrder = {
           buy: {
@@ -126,9 +144,9 @@ export const lauchSimulation = async ({
   }
   const variations = orders.map((order) => order.variation);
   globalVariation = +variations
-    .reduce((acc, variation, index) => {
-      return index !== 0 ? acc * variation : 1 * variation;
-    })
+    .reduce((acc, variation) => {
+      return acc * variation;
+    }, 1)
     .toFixed(6);
   saveSimulationAsJSON({
     simulationParameters: {
@@ -141,65 +159,9 @@ export const lauchSimulation = async ({
     endTime: moment(endTime).valueOf(),
     globalVariation,
     orders,
-    writeNew: true,
+    fileName: historyFileName,
+    version,
+    increment,
   });
   return globalVariation;
-};
-
-const prettySimulation = (
-  simulation: SimulationInterface,
-  startTime: number,
-  endTime: number
-) => {
-  return {
-    ...simulation,
-    startTime: moment(startTime).format("LLL"),
-    endTime: moment(endTime).format("LLL"),
-  };
-};
-const saveSimulationAsJSON = (p: {
-  simulationParameters: SimulationInterface;
-  startTime: number;
-  endTime: number;
-  globalVariation: number;
-  orders: Array<SimulationOrder>;
-  writeNew: boolean;
-}) => {
-  let globalVariation = {
-    multiplicator: p.globalVariation,
-    percentage: `${
-      p.globalVariation > 1
-        ? ((p.globalVariation - 1) * 100).toFixed(2)
-        : "-" + ((1 - p.globalVariation) * 100).toFixed(2)
-    }%`,
-  };
-
-  const json = JSON.stringify(
-    {
-      ...prettySimulation(p.simulationParameters, p.startTime, p.endTime),
-      globalVariation,
-      numberOfOrders: p.orders.length,
-      orders: p.orders,
-    },
-    null,
-    4
-  );
-  fs.writeFile(
-    `./history/simulations/${historyFileName}-${version}.json`,
-    json,
-    "utf8",
-    () => {
-      p.writeNew &&
-        fs.appendFile("./src/Simulation/config.ts", increment, function (
-          err: any
-        ) {
-          if (err) return console.error(err);
-        });
-      console.log(
-        colorSuccess(
-          `Simulation saved, variation: ${globalVariation.percentage}`
-        )
-      );
-    }
-  );
 };
