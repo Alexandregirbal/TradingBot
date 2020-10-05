@@ -1,5 +1,5 @@
 import moment from "moment";
-import { colorSuccess } from "../Console";
+import { colorFaillure, colorSuccess } from "../Console";
 import { SimulationInterface, SimulationOrder } from "../Interfaces/simulation";
 const fs = require("fs");
 
@@ -44,10 +44,11 @@ export const saveSimulationAsJSON = (p: {
       ) {
         if (err) return console.error(err);
       });
+      const colorRevealVariation =
+        globalVariation.multiplicator >= 1 ? colorSuccess : colorFaillure;
       console.log(
-        colorSuccess(
-          `Simulation saved, variation: ${globalVariation.percentage}`
-        )
+        "Simulation saved, variation:",
+        colorRevealVariation(`${globalVariation.percentage}`)
       );
     }
   );

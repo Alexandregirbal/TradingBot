@@ -10,6 +10,6 @@ export const configDownloadHistory: Array<ConfigDownloadHistoryInterface> = [
   {
     symbols: { base: "ETH", vs: "USDT" },
     interval: "1m",
-    year: 2018,
+    year: 2017,
   },
 ];

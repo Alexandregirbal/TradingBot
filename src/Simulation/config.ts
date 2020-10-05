@@ -16,6 +16,13 @@ const interval = BinanceIntervalsEnum.m1;
 
 export const increment = "config.version++;"; // this line will be added for each new simulation run
 
+interface IndicatorsInterface {
+  rsi: number;
+}
+interface StopInterface {
+  takeProfit: number;
+  stopLoss: number;
+}
 interface ConfigSimulationInterface {
   name: string;
   version: number;
@@ -23,10 +30,9 @@ interface ConfigSimulationInterface {
   end: { year: number; month: number };
   symbols: any;
   interval: string;
-  strategy: any;
-  stopStrategy: {
-    takeProfit: number;
-    stopLoss: number;
+  strategy: {
+    entryStrategy: IndicatorsInterface;
+    exitStrategy: StopInterface & IndicatorsInterface;
   };
   transactionFee: number;
 }
@@ -36,22 +42,22 @@ export const config: ConfigSimulationInterface = {
   version: 1,
   symbols: { base: "ETH", vs: "USDT" },
   start: { year: 2018, month: 1 },
-  end: { year: 2018, month: 12 },
+  end: { year: 2018, month: 6 },
   interval,
   strategy: {
-    entry: {
-      rsi: "<=30",
+    entryStrategy: {
+      rsi: 30,
     },
-    exit: {
-      rsi: ">=69",
+    exitStrategy: {
+      takeProfit: 1.005,
+      stopLoss: 0.999,
+      rsi: 69,
     },
-  },
-  stopStrategy: {
-    takeProfit: 0.003,
-    stopLoss: 0.998,
   },
   transactionFee: 0.1 / 100, //0.1% max chez Binance
 };
+config.version++;
+config.version++;
 config.version++;
 config.version++;
 config.version++;

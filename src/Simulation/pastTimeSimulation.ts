@@ -8,7 +8,7 @@ import { config, increment } from "./config";
 import { fetchPeriode } from "./fetchCandles";
 import { saveSimulationAsJSON } from "./utils";
 moment.locale("fr");
-const { name: historyFileName, version, stopStrategy } = config;
+const { name: historyFileName, version, strategy } = config;
 
 /**
  * Does the simulation and writes a json file
@@ -86,7 +86,7 @@ export const lauchSimulation = async ({
       if (
         shouldBuy({
           rsi: {
-            strategy: 30,
+            strategy: strategy.entryStrategy.rsi,
             ...rsi,
           },
           ma,
@@ -110,9 +110,12 @@ export const lauchSimulation = async ({
       // if (eval(`${rsi}${strategy.exit.rsi}`)) {
       if (
         shouldSell({
-          rsi: { strategy: 70, ...rsi },
+          rsi: { strategy: strategy.exitStrategy.rsi, ...rsi },
           ma,
-          variation: { actual: actualOrder.variation, ...stopStrategy },
+          variation: {
+            actual: actualOrder.variation,
+            ...strategy.exitStrategy,
+          },
         })
       ) {
         //SELL

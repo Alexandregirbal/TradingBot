@@ -5,8 +5,8 @@ import { BinanceIntervalsEnum } from "./binance";
  * @type T: the object representing indicators and rules about them
  */
 export interface StrategyInterface<T> {
-  entry: T;
-  exit: T;
+  entryStrategy: T;
+  exitStrategy: T;
 }
 export interface SimulationInterface {
   symbols: SymbolInterface;

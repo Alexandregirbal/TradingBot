@@ -1,5 +1,5 @@
 import { RequestType } from "../Interfaces/http";
-const color = require("cli-color");
+const color = require("cli-color"); //https://openbase.io/js/cli-color
 
 export const colorRequestType = (type: RequestType["type"]) => {
   switch (type) {
@@ -37,5 +37,9 @@ export const highlightToBlue = (s: string) => {
 };
 
 export const colorSuccess = (s: string) => {
-  return color.white.bold.bgGreen(s);
+  return color.white.bgXterm(28)(s);
+};
+
+export const colorFaillure = (s: string) => {
+  return color.white.bgXterm(160)(s);
 };
