@@ -1,9 +1,9 @@
-import { SymbolInterface } from "../../../Interfaces/cryptos";
-import { publicRequest } from "..";
 import {
-  BinanceIntervalsEnum,
-  BinanceCandleStickInterface,
-} from "../../../Interfaces/binance";
+  CandleStickInterface,
+  SymbolInterface,
+} from "../../../Interfaces/cryptos";
+import { publicRequest } from "..";
+import { BinanceIntervalsEnum } from "../../../Interfaces/binance";
 import moment from "moment";
 import { colorSuccess } from "../../../Console";
 const fs = require("fs");
@@ -29,7 +29,7 @@ export const getCandleSticks45445 = async (p: {
   interval: BinanceIntervalsEnum;
   startTime: number;
   endTime: number;
-}): Promise<Array<BinanceCandleStickInterface>> => {
+}): Promise<Array<CandleStickInterface>> => {
   let tmpTime = {
     start: p.startTime,
     end: p.endTime,
@@ -40,7 +40,7 @@ export const getCandleSticks45445 = async (p: {
     tmpTime.start = tmpTime.start + numberOfIntervalsMax;
   }
 
-  let result: Array<BinanceCandleStickInterface> = [];
+  let result: Array<CandleStickInterface> = [];
   for (const slice of timeSlices) {
     const tmpResult = await publicRequest({
       data: {

@@ -15,22 +15,3 @@ export enum BinanceIntervalsEnum {
   w1 = "1w",
   M1 = "1M",
 }
-
-export interface BinanceCandleStickInterface {
-  prices: {
-    open: number;
-    close: number;
-    high: number;
-    low: number;
-  };
-  time: {
-    open: number;
-    close: number;
-  };
-  volumes: {
-    base: number;
-    quote: number;
-  };
-  numberOfTrades: number;
-  // refer to binance api documentation for more
-}

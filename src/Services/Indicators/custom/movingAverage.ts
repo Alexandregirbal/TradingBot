@@ -1,4 +1,4 @@
-import { BinanceCandleStickInterface } from "../../../Interfaces/binance";
+import { CandleStickInterface } from "../../../Interfaces/cryptos";
 
 /**
  *
@@ -6,7 +6,7 @@ import { BinanceCandleStickInterface } from "../../../Interfaces/binance";
  * The number of periodes is determined by the the candles themself
  */
 export const calculateMovingAverage = (
-  candleSticks: Array<BinanceCandleStickInterface>
+  candleSticks: Array<CandleStickInterface>
 ): number => {
   const closePrices = candleSticks.map((candle) => candle.prices.close);
   let sumOfClosePrices = 0;

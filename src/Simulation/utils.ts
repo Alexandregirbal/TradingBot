@@ -3,15 +3,13 @@ import { colorFaillure, colorSuccess } from "../Console";
 import { SimulationInterface, SimulationOrder } from "../Interfaces/simulation";
 const fs = require("fs");
 
-export const saveSimulationAsJSON = (p: {
+export const saveSimulationAsJSON = async (p: {
   simulationParameters: SimulationInterface;
   startTime: number;
   endTime: number;
   globalVariation: number;
   orders: Array<SimulationOrder>;
-  fileName: string;
-  version: number;
-  increment: string;
+  increment: string | undefined;
 }) => {
   let globalVariation = {
     multiplicator: p.globalVariation,
@@ -34,21 +32,23 @@ export const saveSimulationAsJSON = (p: {
     null,
     4
   );
-  fs.writeFile(
-    `./history/simulations/${p.fileName}-${p.version}.json`,
+  await fs.writeFile(
+    `./history/simulations/${p.simulationParameters.fileName}-${p.simulationParameters.version}.json`,
     json,
     "utf8",
     () => {
-      fs.appendFile("./src/Simulation/config.ts", p.increment, function (
-        err: any
-      ) {
-        if (err) return console.error(err);
-      });
+      p.increment &&
+        fs.appendFile("./src/Simulation/config.ts", p.increment, function (
+          err: any
+        ) {
+          if (err) return console.error(err);
+        });
       const colorRevealVariation =
         globalVariation.multiplicator >= 1 ? colorSuccess : colorFaillure;
       console.log(
         "Simulation saved, variation:",
-        colorRevealVariation(`${globalVariation.percentage}`)
+        colorRevealVariation(`${globalVariation.percentage}`),
+        `(${p.orders.length} orders)`
       );
     }
   );

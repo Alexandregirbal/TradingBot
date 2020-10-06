@@ -1,5 +1,5 @@
 import moment from "moment";
-import { BinanceCandleStickInterface } from "../Interfaces/binance";
+import { CandleStickInterface } from "../Interfaces/cryptos";
 import { SimulationInterface, SimulationOrder } from "../Interfaces/simulation";
 import { calculateMovingAverage } from "../Services/Indicators/custom/movingAverage";
 import { calculateRSIFromCandleSticks } from "../Services/Indicators/custom/rsi";
@@ -8,19 +8,21 @@ import { config, increment } from "./config";
 import { fetchPeriode } from "./fetchCandles";
 import { saveSimulationAsJSON } from "./utils";
 moment.locale("fr");
-const { name: historyFileName, version, strategy } = config;
 
 /**
  * Does the simulation and writes a json file
  * @returns the global variation as a multiplicator of the inital wallet after simulation
  */
-export const lauchSimulation = async ({
+export const launchSimulation = async ({
   symbols,
   start,
   end,
   interval,
   strategy,
   transactionFee,
+  version,
+  fileName,
+  autoIncrement,
 }: SimulationInterface): Promise<number> => {
   let globalVariation = 1;
   let orders: Array<SimulationOrder> = [];
@@ -48,7 +50,7 @@ export const lauchSimulation = async ({
   };
   const rsiPeriodes = 14;
   const movingAveragePeriodes = { first: 21, second: 7 };
-  let candleSticks: Array<BinanceCandleStickInterface> = [];
+  let candleSticks: Array<CandleStickInterface> = [];
   candleSticks = fetchPeriode({
     symbols,
     start: start as any, //can be undefined becauce of the interface, could be modified
@@ -56,8 +58,8 @@ export const lauchSimulation = async ({
   });
   const startTime = candleSticks[0].time.open;
   const endTime = candleSticks[candleSticks.length - 1].time.close;
-  console.log("Number of Candles : ", candleSticks.length);
-  console.log("Number of months studied : ", candleSticks.length / 43000);
+  console.log("Number of Candles: ", candleSticks.length);
+  console.log("Number of months studied: ", candleSticks.length / 43000);
 
   for (let i = rsiPeriodes; i < candleSticks.length; i++) {
     const actualCandle = candleSticks[i];
@@ -151,20 +153,44 @@ export const lauchSimulation = async ({
       return acc * variation;
     }, 1)
     .toFixed(6);
-  saveSimulationAsJSON({
+  await saveSimulationAsJSON({
     simulationParameters: {
       symbols,
       interval,
       strategy,
       transactionFee,
+      fileName: fileName,
+      version,
+      autoIncrement,
     },
     startTime: moment(startTime).valueOf(),
     endTime: moment(endTime).valueOf(),
     globalVariation,
     orders,
-    fileName: historyFileName,
-    version,
     increment,
   });
   return globalVariation;
 };
+
+const {
+  name: historyFileName,
+  version,
+  symbols,
+  start,
+  end,
+  interval,
+  strategy,
+  transactionFee,
+} = config;
+export default async () =>
+  await launchSimulation({
+    symbols,
+    start,
+    end,
+    interval,
+    strategy,
+    transactionFee,
+    fileName: historyFileName,
+    version: version,
+    autoIncrement: true,
+  });

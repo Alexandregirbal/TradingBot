@@ -68,7 +68,8 @@ export const shouldSell = (p: {
   ) {
     maSignal = true;
   }
-  if (variationSignal && (rsiSignal || maSignal)) {
+  if (variationSignal && (maSignal || rsiSignal)) {
+    // console.log(`${rsiSignal ? "rsi" : maSignal && "ma"}`);
     res = true;
   }
   return res;

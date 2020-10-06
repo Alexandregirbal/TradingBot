@@ -1,6 +1,6 @@
-import { BinanceCandleStickInterface } from "../../Interfaces/binance";
+import { CandleStickInterface } from "../../Interfaces/cryptos";
 
-export default (candle: Array<number>): BinanceCandleStickInterface => {
+export default (candle: Array<number>): CandleStickInterface => {
   return {
     prices: {
       open: candle[1],
