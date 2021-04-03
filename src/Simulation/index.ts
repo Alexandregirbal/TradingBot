@@ -10,9 +10,9 @@ console.log(
       "--------------------------RUNNING BACKTEST--------------------------"
     )
 );
-// launchSimulation().catch((err) =>
-//   console.error(colorToRed(`Error: ${err}\n`), err)
-// );
-launchManySimulations().catch((err) =>
+launchSimulation().catch((err) =>
   console.error(colorToRed(`Error: ${err}\n`), err)
 );
+// launchManySimulations().catch((err) =>
+//   console.error(colorToRed(`Error: ${err}\n`), err)
+// );

@@ -1,12 +1,14 @@
 import moment from "moment";
 import { colorFaillure, colorSuccess } from "../Console";
 import { SimulationInterface, SimulationOrder } from "../Interfaces/simulation";
+import { prettyUnixDate } from "../Services/Parsers/dates";
 const fs = require("fs");
 
 export const saveSimulationAsJSON = async (p: {
   simulationParameters: SimulationInterface;
   startTime: number;
   endTime: number;
+  wallet: { begin: number; end: number };
   globalVariation: number;
   orders: Array<SimulationOrder>;
   increment: string | undefined;
@@ -23,8 +25,9 @@ export const saveSimulationAsJSON = async (p: {
   const json = JSON.stringify(
     {
       ...p.simulationParameters,
-      startTime: moment(p.startTime).format("LLL"),
-      endTime: moment(p.endTime).format("LLL"),
+      startTime: prettyUnixDate(p.startTime),
+      endTime: prettyUnixDate(p.endTime),
+      wallet: p.wallet,
       globalVariation,
       numberOfOrders: p.orders.length,
       orders: p.orders,
@@ -37,7 +40,7 @@ export const saveSimulationAsJSON = async (p: {
     json,
     "utf8",
     () => {
-      p.increment &&
+      p.simulationParameters.autoIncrement &&
         fs.appendFile("./src/Simulation/config.ts", p.increment, function (
           err: any
         ) {

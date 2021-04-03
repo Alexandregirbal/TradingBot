@@ -1,13 +1,12 @@
-import moment from "moment";
 import { CandleStickInterface } from "../Interfaces/cryptos";
 import { SimulationInterface, SimulationOrder } from "../Interfaces/simulation";
 import { calculateMovingAverage } from "../Services/Indicators/custom/movingAverage";
 import { calculateRSIFromCandleSticks } from "../Services/Indicators/custom/rsi";
+import { preciseAndPrettyUnixDate } from "../Services/Parsers/dates";
 import { shouldBuy, shouldSell } from "./buyAndSellStrategy";
 import { config, increment } from "./config";
 import { fetchPeriode } from "./fetchCandles";
 import { saveSimulationAsJSON } from "./utils";
-moment.locale("fr");
 
 /**
  * Does the simulation and writes a json file
@@ -22,10 +21,12 @@ export const launchSimulation = async ({
   transactionFee,
   version,
   fileName,
+  wallet,
   autoIncrement,
 }: SimulationInterface): Promise<number> => {
   let globalVariation = 1;
   let orders: Array<SimulationOrder> = [];
+  let currentWallet = wallet;
   let hasBought = false;
   let actualOrder: SimulationOrder = {
     buy: {
@@ -42,6 +43,23 @@ export const launchSimulation = async ({
     },
     variation: 1,
   };
+  const setActualOrderToInitial = (): void => {
+    actualOrder = {
+      buy: {
+        price: -1,
+        quantity: 1,
+        time: "",
+        indicators: {},
+      },
+      sell: {
+        price: -1,
+        quantity: 1,
+        time: "",
+        indicators: {},
+      },
+      variation: 1,
+    };
+  };
   let closingPrice: number = -1;
   let rsi = { previous: -1, actual: -1 };
   let ma = {
@@ -56,35 +74,82 @@ export const launchSimulation = async ({
     start: start as any, //can be undefined becauce of the interface, could be modified
     end: end as any,
   });
-  const startTime = candleSticks[0].time.open;
-  const endTime = candleSticks[candleSticks.length - 1].time.close;
   console.log("Number of Candles: ", candleSticks.length);
-  console.log("Number of months studied: ", candleSticks.length / 43000);
 
-  for (let i = rsiPeriodes; i < candleSticks.length; i++) {
-    const actualCandle = candleSticks[i];
+  const calculateIndicators = (index: number) => {
     rsi.previous = rsi.actual;
     rsi.actual = calculateRSIFromCandleSticks(
-      candleSticks.slice(i - rsiPeriodes, i)
+      candleSticks.slice(index - rsiPeriodes, index)
     );
     ma.first.previous = ma.first.actual;
     ma.first.actual = calculateMovingAverage(
-      candleSticks.slice(i - movingAveragePeriodes.first, i)
+      candleSticks.slice(index - movingAveragePeriodes.first, index)
     );
     ma.second.previous = ma.second.actual;
     ma.second.actual = calculateMovingAverage(
-      candleSticks.slice(i - movingAveragePeriodes.second, i)
+      candleSticks.slice(index - movingAveragePeriodes.second, index)
     );
-
-    // i % 100 === 0 &&
+    // index % 100 === 0 &&
     //   console.log(
     //     `\nMA(movingAveragePeriodes) ${moment(actualCandle.time.close).format("LLL")}:`,
     //     ma
     //   );
+  };
+
+  const buy = (actualCandle: CandleStickInterface) => {
+    hasBought = true;
+    actualOrder.buy.price = closingPrice;
+    actualOrder.buy.quantity = (currentWallet * transactionFee) / closingPrice;
+    currentWallet = currentWallet * transactionFee;
+    actualOrder.buy.time = preciseAndPrettyUnixDate(actualCandle.time.close);
+    actualOrder.buy.indicators = { rsi };
+  };
+
+  const sell = (actualCandle: CandleStickInterface) => {
+    hasBought = false;
+    actualOrder.sell.price = closingPrice;
+    actualOrder.sell.quantity = actualOrder.buy.quantity * transactionFee;
+    currentWallet = actualOrder.sell.quantity * closingPrice;
+    actualOrder.sell.time = preciseAndPrettyUnixDate(actualCandle.time.close);
+    actualOrder.sell.indicators = { rsi };
+    orders.push(actualOrder);
+    setActualOrderToInitial();
+  };
+
+  const calculateVariation = (closingPrice: number) => {
+    return +(
+      (closingPrice * actualOrder.buy.quantity * transactionFee) /
+      (actualOrder.buy.quantity * actualOrder.buy.price)
+    ).toFixed(6);
+  };
+
+  const saveSimulation = async () => {
+    await saveSimulationAsJSON({
+      simulationParameters: {
+        symbols,
+        interval,
+        strategy,
+        transactionFee,
+        fileName: fileName,
+        version,
+        wallet,
+        autoIncrement,
+      },
+      startTime: candleSticks[0].time.open,
+      endTime: candleSticks[candleSticks.length - 1].time.close,
+      wallet: { begin: wallet, end: +currentWallet.toFixed(2) },
+      globalVariation,
+      orders,
+      increment,
+    });
+  };
+
+  for (let index = rsiPeriodes; index < candleSticks.length; index++) {
+    const actualCandle = candleSticks[index];
+    calculateIndicators(index);
     closingPrice = actualCandle.prices.close;
+
     if (!hasBought) {
-      //on attend une entrée
-      //if (eval(`${rsi}${strategy.entry.rsi}`)) {
       if (
         shouldBuy({
           rsi: {
@@ -94,22 +159,10 @@ export const launchSimulation = async ({
           ma,
         })
       ) {
-        //BUY
-        hasBought = true;
-        actualOrder.buy.price = closingPrice;
-        actualOrder.buy.time = moment(actualCandle.time.close).format(
-          "MMMM Do YYYY, h:mm:ss a"
-        );
-        actualOrder.buy.indicators = { rsi };
+        buy(actualCandle);
       }
-    } else {
-      //hasBought === true
-      //on attend une sortie
-      actualOrder.variation = +(
-        (closingPrice * (1 - transactionFee)) /
-        (actualOrder.buy.price * (1 - transactionFee))
-      ).toFixed(8); // no need of transaction fees while no quantities are settled
-      // if (eval(`${rsi}${strategy.exit.rsi}`)) {
+    } else if (hasBought) {
+      actualOrder.variation = calculateVariation(closingPrice);
       if (
         shouldSell({
           rsi: { strategy: strategy.exitStrategy.rsi, ...rsi },
@@ -120,30 +173,7 @@ export const launchSimulation = async ({
           },
         })
       ) {
-        //SELL
-        hasBought = false;
-        actualOrder.sell.price = closingPrice;
-        actualOrder.sell.time = moment(actualCandle.time.close).format(
-          "MMMM Do YYYY, h:mm:ss a"
-        );
-        actualOrder.sell.indicators = { rsi };
-        //Calculate variation of a transaction with fee
-        orders.push(actualOrder);
-        actualOrder = {
-          buy: {
-            price: -1,
-            quantity: 1,
-            time: "",
-            indicators: {},
-          },
-          sell: {
-            price: -1,
-            quantity: 1,
-            time: "",
-            indicators: {},
-          },
-          variation: 1,
-        };
+        sell(actualCandle);
       }
     }
   }
@@ -153,22 +183,8 @@ export const launchSimulation = async ({
       return acc * variation;
     }, 1)
     .toFixed(6);
-  await saveSimulationAsJSON({
-    simulationParameters: {
-      symbols,
-      interval,
-      strategy,
-      transactionFee,
-      fileName: fileName,
-      version,
-      autoIncrement,
-    },
-    startTime: moment(startTime).valueOf(),
-    endTime: moment(endTime).valueOf(),
-    globalVariation,
-    orders,
-    increment,
-  });
+  console.log("variation-->", wallet, currentWallet, currentWallet / wallet);
+  await saveSimulation();
   return globalVariation;
 };
 
@@ -181,6 +197,7 @@ const {
   interval,
   strategy,
   transactionFee,
+  wallet,
 } = config;
 export default async () =>
   await launchSimulation({
@@ -192,5 +209,6 @@ export default async () =>
     transactionFee,
     fileName: historyFileName,
     version: version,
+    wallet,
     autoIncrement: true,
   });

@@ -1,3 +1,4 @@
+import { BinanceIntervalsEnum } from "../../Interfaces/binance";
 import { SymbolInterface } from "../../Interfaces/cryptos";
 
 interface ConfigDownloadHistoryInterface {
@@ -9,7 +10,7 @@ interface ConfigDownloadHistoryInterface {
 export const configDownloadHistory: Array<ConfigDownloadHistoryInterface> = [
   {
     symbols: { base: "ETH", vs: "USDT" },
-    interval: "1m",
+    interval: BinanceIntervalsEnum.m1,
     year: 2017,
   },
 ];

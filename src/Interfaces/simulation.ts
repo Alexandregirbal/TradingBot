@@ -16,6 +16,7 @@ export interface SimulationInterface {
   transactionFee: number;
   version: number;
   fileName: string;
+  wallet: number;
   autoIncrement: boolean;
 }
 export interface SimulationOrder {
@@ -57,6 +58,7 @@ export interface ConfigSimulationInterface {
     entryStrategy: IndicatorsInterface;
     exitStrategy: StopInterface & IndicatorsInterface;
   };
+  wallet: number;
   transactionFee: number;
 }
 export interface IterableConfigSimulationInterface {
@@ -72,5 +74,6 @@ export interface IterableConfigSimulationInterface {
     entryStrategies: Array<IndicatorsInterface>;
     exitStrategies: Array<StopInterface & IndicatorsInterface>;
   };
+  wallet: number;
   transactionFee: number;
 }

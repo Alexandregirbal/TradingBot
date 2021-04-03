@@ -45,6 +45,7 @@ const testConfig: IterableConfigSimulationInterface = {
       },
     ],
   },
+  wallet: 10000,
   transactionFee: 0.1 / 100, //0.1% max chez Binance
 };
 export const launchManySimulations = async (
@@ -68,6 +69,7 @@ export const launchManySimulations = async (
               transactionFee: simulationConfig.transactionFee,
               version: i,
               fileName: `${historyFileName}${-version}`,
+              wallet: 10000,
               autoIncrement: false,
             });
             i++;
